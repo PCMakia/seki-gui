@@ -1,3 +1,6 @@
+"""Main script for running Graphic User Interface 
+"""
+
 from __future__ import annotations
 
 import logging
