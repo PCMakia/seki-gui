@@ -1,3 +1,16 @@
+# seki-gui
+
+Desktop CustomTkinter client extracted from Personal-Assistant. Talks to `seki-agent-core` over HTTP (`AGENT_BASE_URL`).
+
+```powershell
+pip install -r requirements-gui.txt
+python -m src.GUI.gui_main
+```
+
+Original monolith notes below.
+
+---
+
 # *Private Assistant Agent*
 
 A flagship project to display my undergraduate knowledge about my favorite topic: machine learning.
