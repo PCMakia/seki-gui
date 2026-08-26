@@ -7,6 +7,7 @@ import logging
 import os
 import queue
 import threading
+import webbrowser
 from dataclasses import dataclass
 from typing import Any, Tuple
 
@@ -97,7 +98,15 @@ class ChatApp(ctk.CTk):
             width=150,
             command=self.show_metrics,
         )
-        self.metrics_button.grid(row=0, column=2, padx=(0, 10), pady=8)
+        self.metrics_button.grid(row=0, column=2, padx=(0, 8), pady=8)
+
+        self.vault_button = ctk.CTkButton(
+            status_bar,
+            text="Open vault",
+            width=110,
+            command=self.open_vault,
+        )
+        self.vault_button.grid(row=0, column=3, padx=(0, 10), pady=8)
 
         self.after(100, self._poll_events)
         self.after(150, self.refresh_health)
@@ -172,6 +181,11 @@ class ChatApp(ctk.CTk):
                 self.events.put(_Event("metrics", ({}, exc)))
 
         threading.Thread(target=worker, daemon=True).start()
+
+    def open_vault(self) -> None:
+        url = f"{self.client.base_url.rstrip('/')}/vault/"
+        webbrowser.open(url)
+        self._append_system(f"Opened vault in browser: {url}")
 
     def on_send(self) -> None:
         if self._pending_request:
