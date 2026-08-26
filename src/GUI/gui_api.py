@@ -45,7 +45,7 @@ class ChatClient:
     def check_health(self) -> tuple[bool, str]:
         """Return (api_reachable, short status line for GUI).
 
-        ``/agent/health`` includes Ollama reachability; it does not prove inference works.
+        ``/agent/health`` includes inference-gateway readiness; it does not prove a completion works.
         """
         url = self._url("/agent/health")
         try:
@@ -60,25 +60,28 @@ class ChatClient:
         if not isinstance(data, dict) or data.get("status") != "healthy":
             return False, "API unhealthy"
 
-        model = str(data.get("ollama_model") or "").strip() or "?"
+        model = str(
+            data.get("inference_model") or data.get("ollama_model") or ""
+        ).strip() or "?"
+        inference = data.get("inference") if isinstance(data.get("inference"), dict) else {}
         ollama = data.get("ollama") if isinstance(data.get("ollama"), dict) else {}
-        reachable = bool(ollama.get("reachable"))
-        present = ollama.get("model_present")
-        detail = ollama.get("detail")
+        reachable = bool(inference.get("ready") or ollama.get("reachable"))
+        present = inference.get("ready") if "ready" in inference else ollama.get("model_present")
+        detail = inference.get("detail") or ollama.get("detail")
 
         if not reachable:
             tail = f" — {detail}" if detail else ""
-            return True, f"API OK · Ollama unreachable{tail}"[:200]
+            return True, f"API OK · inference unreachable{tail}"[:200]
 
         if present is False:
             return (
                 True,
-                f"API OK · Ollama up · model {model!r} not installed (ollama pull {model})",
+                f"API OK · gateway up · model {model!r} not ready",
             )
 
         return (
             True,
-            f"API OK · Ollama up · model {model!r} (chat may still fail if model crashes)",
+            f"API OK · inference ready · model {model!r}",
         )
 
     def send_message(self, message: str) -> Dict[str, Any]:
